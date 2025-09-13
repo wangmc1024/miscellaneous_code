@@ -64,6 +64,7 @@ public:
         }
         if(temp == nullptr){
             node->setPrev(Tail_);
+            Tail_->setNext(node);
             Tail_ = node;
             std::cout<<"success add node"<<std::endl;
             return;
@@ -92,6 +93,9 @@ public:
         if(node == Tail_){
             Tail_ = node->getPrev();
         }
+        if(Tail_ == dummyHead_){
+            Tail_ = nullptr;
+        }
         delete node;
     }
 
@@ -101,23 +105,27 @@ public:
             std::cerr<<"wrok func error: no work"<<std::endl;
         }
         auto now_time = std::chrono::steady_clock::now();
-        while(temp){
+       while(temp){
+            TimerNode* next = temp->getNext();  // 先保存下一个节点
             if(now_time >= temp->getExpireTime()){
                 temp->Todo();
                 DelNode(temp);
-                temp = dummyHead_->getNext();
             }
+            temp = next;  // 使用保存的下一个节点继续循环
         }
     }
 
     ~TimerHandle(){
-        TimerNode* cur = dummyHead_;
+        TimerNode* cur = dummyHead_->getNext();
         TimerNode* temp;
         while(cur){
             temp = cur->getNext();
             delete cur;
             cur = temp;
         }
+        delete dummyHead_;
+        dummyHead_ = nullptr;
+        Tail_ = nullptr;
     }
 private:
     TimerHandle():dummyHead_{new TimerNode{std::chrono::seconds(0)}},Tail_{nullptr}{
@@ -139,12 +147,38 @@ int main(int argc,char* argv[]){
     th.AddNode(std::chrono::milliseconds(10),"the shortest");
     th.AddNode(std::chrono::milliseconds(4550),"i am so long hsa 4550");
     
-    while (1)
+
+    auto end_time = std::chrono::steady_clock::now()+std::chrono::seconds(3);
+    bool flag = 1;
+    while (flag)
     {   
          th.work();
          std::this_thread::sleep_for(std::chrono::milliseconds(50));
+         
+         auto check_time =  std::chrono::steady_clock::now();
+         if(check_time >= end_time){
+            std::cout<<"first end"<<std::endl;
+            flag = 0;
+         }
     }
-    
+
+    th.AddNode(std::chrono::milliseconds(500),"this is 500");
+    th.AddNode(std::chrono::milliseconds(10),"the shortest");
+    th.AddNode(std::chrono::milliseconds(4550),"i am so long hsa 4550");
+
+    end_time = std::chrono::steady_clock::now()+std::chrono::seconds(3);
+    flag = 1;
+    while (flag)
+    {   
+         th.work();
+         std::this_thread::sleep_for(std::chrono::milliseconds(50));
+         
+         auto check_time =  std::chrono::steady_clock::now();
+         if(check_time >= end_time){
+            std::cout<<"second end"<<std::endl;
+            flag = 0;
+         }
+    }
 
     return 0;
 }
