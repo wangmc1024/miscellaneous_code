@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 
 def show_specific_color(bgr_image, hsv_image, color):
-    
     min = np.array([color-10, 0, 0])
     max = np.array([color+10, 255, 255])
 
