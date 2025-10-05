@@ -33,7 +33,7 @@ int main() {
         auto* timer2 = string_timer.add_timer(
             2000,  // Trigger after 2 seconds
             string_callback,
-            "2 seconds timer triggered!"
+            "2s timer triggered!"
         );
 
         auto* timer3 = int_timer.add_timer(
@@ -51,6 +51,7 @@ int main() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1500));
         std::cout << "Cancel timer 2" << std::endl;
         string_timer.remove_timer(timer2);
+
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
