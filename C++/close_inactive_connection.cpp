@@ -1,3 +1,6 @@
+//使用map，将<sock_fd,timeout>作为键值存储起来
+//在后台遍历map,寻找超时链接,如果超时,则断开
+//创建好线程后使用detach将其分离,注意使用锁,避免资源竞争
 #include<iostream>
 #include<mutex>
 #include<chrono>
