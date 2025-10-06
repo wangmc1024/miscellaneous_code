@@ -12,4 +12,4 @@ origin_cat = cv2.bitwise_xor(after_cat,password)
 cv2.imshow("origin_cat",origin_cat)
 
 cv2.waitKey()
-cv2.derstroyAllWindows()
+cv2.destroyAllWindows()

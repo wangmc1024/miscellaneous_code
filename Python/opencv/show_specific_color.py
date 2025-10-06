@@ -1,6 +1,13 @@
 import cv2
 import numpy as np
 
+#H:hue,色调
+#S:saturation,饱和度
+#V:value,亮度
+
+#先将BGR图片转换为HSV图片
+#在利用inRange函数提取出对应的颜色范围的图片
+#将提取出来的值作为蒙版(掩膜),与原图进行按位与运算,得到特定颜色的图片
 def show_specific_color(bgr_image, hsv_image, color):
     min = np.array([color-10, 0, 0])
     max = np.array([color+10, 255, 255])

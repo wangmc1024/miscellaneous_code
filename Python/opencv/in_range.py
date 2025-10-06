@@ -8,4 +8,4 @@ img = cv2.inRange(cat, min, max)
 cv2.imshow('cat', img)
 
 cv2.waitKey()
-cv2.derstroyAllWindows()
+cv2.destroyAllWindows()

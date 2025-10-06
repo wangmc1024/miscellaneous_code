@@ -16,6 +16,10 @@ rows,cols = cat.shape[:2]
 
 #new_cat = cv2.rotate(cat,cv2.ROTATE_90_CLOCKWISE) # 旋转90度
 
+#Matrix = cv2.getRotationMatrix2D(start_point,angle,scale)
+#start_point:旋转中心点
+#angle:旋转角度
+#scale:缩放因子
 # M = cv2.getRotationMatrix2D((rows/2,cols/2),45,0.6)
 
 origin = np.float32([[0,0],[0,rows-1],[cols-1,0]])
