@@ -11,7 +11,7 @@ cat = cv2.imread("cat.png")
 #anchor：锚点，默认为(-1,-1)，表示锚点位于卷积核的中心。
 #normalize：是否归一化，默认为0，表示不归一化。
 #borderType：边界填充方式，默认为BORDER_DEFAULT，表示填充方式由具体实现定义。
-dst = cv2.boxFilter(cat,cv2.CV_16U,(10,10),normalize=0) #方框滤波
+dst = cv2.boxFilter(cat,cv2.CV_16U,(16,16),normalize=1) #方框滤波
 
 #image = cv2.GaussianBlur(image,(ksize,ksize),sigmaX,sigmaY[,borderType])
 #ksize：卷积核的大小，必须是奇数，如(3,3)、(5,5)等。

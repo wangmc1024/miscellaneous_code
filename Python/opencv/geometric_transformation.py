@@ -13,6 +13,7 @@ rows,cols = cat.shape[:2]
 #new_cat = cv2.flip(cat,1) # 0垂直翻转，1水平翻转，-1水平垂直翻转
 
 # M = np.float32([[1.0,0.0,100.0],[0.0,1.0,50.0]]) #平移矩阵
+# new_cat = cv2.wrapAffine(cat,M,(cols,rows)) 
 
 #new_cat = cv2.rotate(cat,cv2.ROTATE_90_CLOCKWISE) # 旋转90度
 
