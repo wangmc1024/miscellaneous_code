@@ -1,0 +1,288 @@
+<template>
+  <div class="background">
+    <nav class="shelf">
+      <router-link to="/login" class="book home-page">Home page</router-link>
+      <router-link to="/about-us" class="book about-us">About us</router-link>
+      <router-link to="/contact" class="book contact">Contact</router-link>
+      <router-link to="/faq" class="book faq">F.A.Q.</router-link>
+      <span class="book not-found"></span>
+      <span class="door left"></span>
+      <span class="door right"></span>
+    </nav>
+    <h1>Error 404</h1>
+    <p>The page you're looking for can't be found</p>
+  </div>
+</template>
+
+
+<script setup>
+
+</script>
+
+<style scoped>
+.background {
+  min-height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: -1;
+  /* 渐变背景 */
+  background: linear-gradient(120deg, #446072 0%, #2c3e50 100%);
+  /* 添加星空层 */
+}
+.background::before, .background::after {
+  content: "";
+  position: absolute;
+  left: 0; top: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+.background::before {
+  /* 星空点点 */
+  background:
+    radial-gradient(white 1px, transparent 1px) 0 0,
+    radial-gradient(white 1px, transparent 1px) 50px 50px;
+  background-size: 100px 100px;
+  opacity: 0.15;
+  animation: starMove 60s linear infinite;
+}
+.background::after {
+  /* 柔和光晕 */
+  background: radial-gradient(circle at 70% 30%, #fff8 0%, #fff0 60%);
+  opacity: 0.12;
+  animation: glowMove 20s ease-in-out infinite alternate;
+}
+
+@keyframes starMove {
+  0% { background-position: 0 0, 50px 50px; }
+  100% { background-position: 100px 100px, 150px 150px; }
+}
+@keyframes glowMove {
+  0% { background-position: 70% 30%; }
+  100% { background-position: 60% 40%; }
+}
+
+body, html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+  background: transparent;
+  font-family: monospace;
+  color: white;
+  overflow: hidden;
+}
+
+h1 {
+  margin-top: 2rem;
+  text-align: center;
+  letter-spacing: 0.1em;
+  font-size: 2.5rem;
+  text-shadow: 0 2px 8px #0008, 0 0 2px #fff4;
+  animation: titlePop 1.2s cubic-bezier(.68,-0.55,.27,1.55);
+}
+@keyframes titlePop {
+  0% { transform: scale(0.7) translateY(-40px); opacity: 0; }
+  60% { transform: scale(1.1) translateY(10px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); }
+}
+
+h1 + p {
+  text-align: center;
+  font-size: 1.2rem;
+  opacity: 0.8;
+  margin-bottom: 2rem;
+  animation: fadeInUp 1.5s 0.5s both;
+}
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(30px);}
+  100% { opacity: 0.8; transform: translateY(0);}
+}
+
+.shelf {
+  position: relative;
+  width: 30rem;
+  height: 14rem;
+  margin: 0 auto;
+  border: 0.5rem solid #374d5b;
+  border-radius: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  perspective: 130rem;
+  box-shadow: 0 8px 32px 0 #0003, inset 0 0 2rem rgba(0, 0, 0, 0.2);
+  animation: shelfAppear 1.2s cubic-bezier(.68,-0.55,.27,1.55);
+}
+@keyframes shelfAppear {
+  0% { opacity: 0; transform: scale(0.8) translateY(40px);}
+  100% { opacity: 1; transform: scale(1) translateY(0);}
+}
+
+.door {
+  position: absolute;
+  width: 14.8rem;
+  height: 14rem;
+  display: flex;
+  box-sizing: border-box;
+  padding: 1rem;
+  background: linear-gradient(120deg, #374d5b 80%, #2c3e50 100%);
+  align-items: center;
+  box-shadow: 0 1px 8px 2px #0005;
+  outline: 1px solid transparent;
+  transition: box-shadow 0.3s;
+}
+.door.left:hover, .door.right:hover {
+  box-shadow: 0 4px 24px 4px #fff2, 0 1px 8px 2px #0005;
+}
+
+.door::before {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: rgba(255,255,255,0.13);
+  content: "";
+  display: block;
+  box-shadow: 0 0 8px 2px #fff2;
+}
+
+.door.left {
+  border-radius: 0 0.75rem 0.75rem 0;
+  justify-content: flex-end;
+  animation:
+    leftDoorOpen 3.5s ease-out forwards 1s,
+    leftDoorFlap 15s linear infinite forwards 9s;
+  transform-origin: 0 0 0;
+}
+
+.door.right {
+  right: 0;
+  border-radius: 0.75rem 0 0 0.75rem;
+  animation:
+    rightDoorOpen 3s ease-out forwards 1.5s,
+    rightDoorFlap 10s linear infinite forwards 8s;
+  transform-origin: 100% 0 0;
+}
+
+.book {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 0.8rem 4rem 0.8rem 2rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(90deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.05) 100%);
+  color: white;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px 0 #0002, inset 0 0 0.75rem rgba(255, 255, 255, 0.1);
+  transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+}
+
+.book.home-page {
+ transform: rotate(-90deg) translate(-12.4rem, 3rem);
+  transform-origin: 0;
+  animation: bookDrop 1.2s 0.2s both;
+}
+.book.about-us {
+  transform: rotate(-100deg) translate(-13.4rem, 6.1rem);
+  transform-origin: 0;
+  outline: 1px solid transparent;
+  animation: bookDrop 1.2s 0.3s both;
+}
+.book.home-page:hover {
+  background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+  box-shadow: 0 4px 12px 0 rgba(0,0,0,0.2), inset 0 0 1rem rgba(255,255,255,0.2);
+  /* 悬浮时旋转角度从 -90deg 改为 -85deg（更接近水平，视觉上“抬起”），位移微调 */
+  transform: rotate(-85deg) translate(-12.2rem, 2.8rem);
+  transform-origin: 0;
+}
+
+.book.about-us:hover {
+  background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+  box-shadow: 0 4px 12px 0 rgba(0,0,0,0.2), inset 0 0 1rem rgba(255,255,255,0.2);
+  /* 旋转角度从 -100deg 改为 -95deg，位移微调 */
+  transform: rotate(-95deg) translate(-13.2rem, 5.9rem);
+  transform-origin: 0;
+}
+.book.contact {
+  right: 2rem;
+  bottom: 0.2rem;
+  border-radius: 0.3rem 0 0 0.3rem;
+  animation: bookDrop 1.2s 0.4s both;
+}
+.book.faq {
+  right: 0.8rem;
+  bottom: 3.3rem;
+  border-radius: 0.3rem 0 0 0.3rem;
+  animation: bookDrop 1.2s 0.5s both;
+}
+@keyframes bookDrop {
+  0% { opacity: 0; transform: translateY(-40px) scale(0.8);}
+  100% { opacity: 1; }
+}
+
+.book.not-found {
+  width: 12rem;
+  height: 3.5rem;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  background-color: transparent;
+  transform: rotate(-90deg) translate(-12rem, 13rem) scale(1);
+  transform-origin: 0;
+  cursor: default;
+  animation: bookFadeOut 1s 3s infinite forwards, bookDrop 1.2s 0.6s both;
+}
+
+.book.not-found::after {
+  display: block;
+  width: 10rem;
+  padding-left: 5rem;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='30'><path fill='rgb(255, 255, 255)' d='M7.688,3.737C6.1,10.409,4.624,16.982,2.475,23.517c-0.424,1.29,0.724,2.338,1.957,1.916c5.879-2.021,11.743-4.107,17.409-6.696c1.246-0.572,0.443-2.366-0.815-1.932c-3.856,1.333-7.695,2.69-11.565,3.959c2.879-2.526,5.485-5.215,9.013-7.17c4.441-2.459,9.299-4.109,14.281-4.915c10.903-1.772,22.052,0.562,31.979,5.04c9.241,4.162,12.895,8.725,13.164,4.942c0.121-1.69-5.57-4.953-14.125-8.714C53.19,5.292,41.094,3.539,29.636,6.058c-7.122,1.567-16.708,5.374-22.064,11.544c1.359-4.455,2.461-9.028,3.032-13.563C10.852,2.091,8.12,1.927,7.688,3.737z'/></svg>");
+  background-repeat: no-repeat;
+  background-size: 4rem;
+  background-position: left center;
+  font-family: 'Dancing Script', monospace;
+  text-transform: lowercase;
+  font-size: 25px;
+  content: "this page can't be found";
+  transform: rotate(90deg) translate(6rem, -1rem);
+  opacity: 0.3;
+}
+
+.book:hover:not(.not-found) {
+  background: linear-gradient(90deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 100%);
+  box-shadow: 0 4px 16px 0 #fff2, 0 2px 8px 0 #0002;
+  color: #ffe;
+  transform: scale(1.05) rotate(-2deg);
+}
+
+/* 动画效果定义 */
+@keyframes leftDoorOpen {
+  60% {transform: rotateY(-115deg)}
+  100% {transform: rotateY(-110deg)}
+}
+@keyframes rightDoorOpen {
+  60% {transform: rotateY(125deg)}
+  100% {transform: rotateY(120deg)}
+}
+@keyframes rightDoorFlap {
+  0% { transform: rotateY(120deg)}
+  5% {transform: rotateY(125deg)}
+  15% {transform: rotateY(117deg)}
+  25% {transform: rotateY(123deg)}
+  30% {transform: rotateY(120deg)}
+  100% {transform: rotateY(120deg)}
+}
+@keyframes leftDoorFlap {
+  0% { transform: rotateY(-110deg)}
+  5% {transform: rotateY(-115deg)}
+  15% {transform: rotateY(-107deg)}
+  25% {transform: rotateY(-113deg)}
+  30% {transform: rotateY(-110deg)}
+  100% {transform: rotateY(-110deg)}
+}
+@keyframes bookFadeOut {
+  50% {border: 1px dashed rgba(255, 255, 255, 0.1);}
+}
+</style>
