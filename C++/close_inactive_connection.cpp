@@ -1,6 +1,12 @@
 //使用map，将<sock_fd,timeout>作为键值存储起来
 //在后台遍历map,寻找超时链接,如果超时,则断开
 //创建好线程后使用detach将其分离,注意使用锁,避免资源竞争
+
+//对于所有的连接都有一个最大过期时间（即MAX_DURATION）
+//在后台创建一个线程，循环扫描已建立的链接对象
+//根据对象里记录的连接建立时间，与当前时间做差值
+//如果差值大于MAX_DURARION则断开连接，否则继续遍历
+
 #include<iostream>
 #include<mutex>
 #include<chrono>

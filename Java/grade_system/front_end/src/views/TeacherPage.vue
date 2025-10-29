@@ -1,309 +1,462 @@
 <template>
-  <div class="teacher-grade-container">
-    <h2>学生成绩管理</h2>
-    <div class="search-bar">
-      <input v-model="searchName" placeholder="输入姓名查找学生" />
-      <button @click="searchStudent">查找</button>
-      <button @click="resetSearch" class="reset-btn">重置</button>
+  <div class="student-management">
+    <h2>学生管理系统</h2>
+
+    <!-- 加载状态 -->
+    <div v-if="loading" class="loading">加载中...</div>
+
+    <!-- 错误提示 -->
+    <div v-else-if="error" class="error">{{ error }}</div>
+
+    <!-- 主内容 -->
+    <div v-else class="content">
+      <!-- 搜索和添加按钮 -->
+      <div class="toolbar">
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="搜索学生..."
+          class="search-input"
+          @input="handleSearch"
+        />
+        <button @click="showAddForm = true" class="add-btn">添加学生</button>
+      </div>
+
+      <!-- 学生列表 -->
+      <div class="student-list">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>姓名</th>
+              <th>成绩</th>
+              <th>班级</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="student in paginatedStudents" :key="student.id">
+              <td>{{ student.id }}</td>
+              <td>{{ student.name }}</td>
+              <td>{{ student.grade }}</td>
+              <td>{{ student.className }}</td>
+              <td class="actions">
+                <button @click="editStudent(student)" class="edit-btn">编辑</button>
+                <button @click="deleteStudent(student.id)" class="delete-btn">删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 空状态 -->
+        <div v-if="students.length === 0" class="empty-state">
+          暂无学生数据
+        </div>
+      </div>
+
+      <!-- 分页 -->
+      <div class="pagination" v-if="totalCount > 0">
+        <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
+        <span>第 {{ currentPage }} 页，共 {{ totalPages }} 页</span>
+        <span>共 {{ totalCount }} 条记录</span>
+        <button @click="nextPage" :disabled="currentPage === totalPages">下一页</button>
+        <div class="page-size">
+          每页显示：
+          <select v-model="pageSize" @change="handlePageSizeChange">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>班级</th>
-            <th>姓名</th>
-            <th>平时分</th>
-            <th>考试成绩</th>
-            <th>总成绩</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(student, idx) in filteredStudents" :key="student.name + student.class">
-            <td>
-              <input v-if="editIndex === idx" v-model="editStudent.class" class="edit-input"/>
-              <span v-else>{{ student.class }}</span>
-            </td>
-            <td>
-              <input v-if="editIndex === idx" v-model="editStudent.name" class="edit-input"/>
-              <span v-else>{{ student.name }}</span>
-            </td>
-            <td>
-              <input v-if="editIndex === idx" type="number" v-model.number="editStudent.usualScore" class="edit-input"/>
-              <span v-else>{{ student.usualScore }}</span>
-            </td>
-            <td>
-              <input v-if="editIndex === idx" type="number" v-model.number="editStudent.examScore" class="edit-input"/>
-              <span v-else>{{ student.examScore }}</span>
-            </td>
-            <td>{{ student.usualScore + student.examScore }}</td>
-            <td>
-              <div class="action-btns">
-                <button v-if="editIndex === idx" @click="saveEdit(idx)" class="save-btn">保存</button>
-                <button v-if="editIndex === idx" @click="cancelEdit" class="cancel-btn">取消</button>
-                <button v-else @click="startEdit(idx, student)" class="edit-btn">编辑</button>
-                <button @click="deleteStudent(idx)" class="delete-btn">删除</button>
-              </div>
-            </td>
-          </tr>
-          <tr v-if="filteredStudents.length === 0">
-            <td colspan="6" class="empty-row">暂无数据</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="add-form">
-      <h3>添加学生成绩</h3>
-      <input v-model="newStudent.class" placeholder="班级"/>
-      <input v-model="newStudent.name" placeholder="姓名" />
-      <input type="number" v-model.number="newStudent.usualScore" placeholder="平时分" />
-      <input type="number" v-model.number="newStudent.examScore" placeholder="考试成绩" />
-      <button @click="addStudent" class="add-btn">添加</button>
+
+    <!-- 添加/编辑对话框 -->
+    <div v-if="showAddForm || editingStudent" class="modal-overlay" @click="closeModal">
+      <div class="modal" @click.stop>
+        <h3>{{ editingStudent ? '编辑学生' : '添加学生' }}</h3>
+
+        <form @submit.prevent="handleSubmit">
+          <div class="form-group">
+            <label>姓名：</label>
+            <input
+              type="text"
+              v-model="formData.name"
+              required
+              placeholder="请输入学生姓名"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>成绩：</label>
+            <input
+              type="number"
+              v-model.number="formData.grade"
+              required
+              min="0"
+              max="100"
+              placeholder="请输入学生成绩"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>班级：</label>
+            <input
+              type="text"
+              v-model="formData.className"
+              required
+              placeholder="请输入班级名称"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="button" @click="closeModal">取消</button>
+            <button type="submit" :disabled="saving">
+              {{ saving ? '保存中...' : '保存' }}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useStudentStore } from '@/api/students'
 
-const students = ref([
-  { class:'2302',name: '张三', usualScore: 30, examScore: 60 },
-  { class:'2302',name: '李四', usualScore: 35, examScore: 55 },
-  { class:'2304',name: '王五', usualScore: 28, examScore: 65 }
-])
+const {
+  students,
+  loading,
+  error,
+  totalCount,
+  currentPage,
+  pageSize,
+  paginatedStudents,
+  fetchAllStudents,
+  createStudent,
+  updateStudent,
+  deleteStudent: deleteStudentApi,
+  prevPage,
+  nextPage,
+} = useStudentStore()
 
-const searchName = ref('')
-const filteredStudents = computed(() => {
-  if (!searchName.value) return students.value
-  return students.value.filter(s => s.name.includes(searchName.value))
+const showAddForm = ref(false)
+const editingStudent = ref(null)
+const saving = ref(false)
+const searchQuery = ref('')
+const formData = ref({
+  name: '',
+  className: '',
+  grade: ''
 })
 
-function searchStudent() {}
-function resetSearch() {
-  searchName.value = ''
+const totalPages = computed(() => {
+  return Math.ceil(totalCount.value / pageSize.value)
+})
+
+const filteredStudents = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return students.value
+  }
+
+  const query = searchQuery.value.toLowerCase().trim()
+  return students.value.filter(student =>
+    student.name.toLowerCase().includes(query) ||
+    student.className.toLowerCase().includes(query) ||
+    String(student.id).includes(query)
+  )
+})
+
+const loadData = async () => {
+  await fetchAllStudents()
 }
 
-const newStudent = ref({ class:'',name: '', usualScore: '', examScore: '' })
-function addStudent() {
-  if (!newStudent.value.class) return alert('请输入班级')
-  if (!newStudent.value.name) return alert('请输入姓名')
-  students.value.push({ ...newStudent.value })
-  newStudent.value = { class:'', name: '', usualScore: 0, examScore: 0 }
+onMounted(() => {
+  loadData()
+})
+
+const handleSearch = () => {
+  if (currentPage.value !== 1) {
+    currentPage.value = 1
+  }
+  if(searchQuery.value.trim()){
+    students.value = filteredStudents.value
+  }else{
+    loadData()
+  }
 }
 
-const editIndex = ref(-1)
-const editStudent = ref({ class:'', name: '', usualScore: 0, examScore: 0 })
+const handlePageSizeChange = () => {
+  currentPage.value = 1
+}
 
-function startEdit(idx, student) {
-  editIndex.value = idx
-  editStudent.value = { ...student }
+const editStudent = async (student) => {
+  editingStudent.value = student
+  formData.value = {
+    name: student.name,
+    grade: student.grade,
+    className: student.className
+  }
 }
-function saveEdit(idx) {
-  students.value[idx] = { ...editStudent.value }
-  editIndex.value = -1
+
+const closeModal = () => {
+  showAddForm.value = false
+  editingStudent.value = null
+  formData.value = {
+    name: '',
+    grade: '',
+    className: ''
+  }
 }
-function cancelEdit() {
-  editIndex.value = -1
+
+const handleSubmit = async () => {
+  saving.value = true
+
+  try {
+    if (editingStudent.value) {
+      await updateStudent(editingStudent.value.id, formData.value)
+    } else {
+      await createStudent(formData.value)
+    }
+
+    closeModal()
+    console.log('操作成功')
+  } catch (err) {
+    console.error('操作失败:', err)
+  } finally {
+    saving.value = false
+  }
 }
-function deleteStudent(idx) {
-  if (confirm('确定要删除该学生成绩吗？')) {
-    students.value.splice(idx, 1)
+
+const deleteStudent = async (studentId) => {
+  if (confirm('确定要删除这个学生吗？')) {
+    try {
+      await deleteStudentApi(studentId)
+      console.log('删除成功')
+    } catch (err) {
+      console.error('删除失败:', err)
+    }
   }
 }
 </script>
 
 <style scoped>
- /* input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
-   -webkit-appearance: none; margin: 0;
-  }
-
-   input[type="number"] {
-    -moz-appearance: textfield;
-  } */
-
-.teacher-grade-container {
-  width: 80%;
-  height: auto;
-  margin: 40px auto;
-  padding: 32px 28px 28px 28px;
-  background: #f5f7fa;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px #e0e7ef;
-  font-family: 'Segoe UI', 'PingFang SC', Arial, sans-serif;
+.student-management {
+  font-family: Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
+
 h2 {
-  text-align: center;
-  margin-bottom: 28px;
-  color: #2d3a4b;
-  letter-spacing: 2px;
+  color: #333;
+  margin-bottom: 20px;
 }
-.search-bar {
-  margin-bottom: 18px;
+
+.loading,
+.error {
+  padding: 20px;
+  text-align: center;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.loading {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.error {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+.toolbar {
   display: flex;
   gap: 10px;
-  justify-content: flex-start;
-  align-items: center;
+  margin-bottom: 20px;
 }
-.search-bar input {
-  padding: 7px 12px;
-  border: 1px solid #bfcbd9;
-  border-radius: 5px;
-  font-size: 15px;
-  width: 220px;
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
-.search-bar button {
-  padding: 7px 18px;
+
+.add-btn,
+.edit-btn,
+.delete-btn {
+  padding: 8px 16px;
   border: none;
-  border-radius: 5px;
-  background: #409eff;
-  color: #fff;
-  font-size: 15px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.2s;
+  font-size: 14px;
+  transition: background-color 0.2s;
 }
-.search-bar .reset-btn {
-  background: #e6a23c;
+
+.add-btn {
+  background-color: #4caf50;
+  color: white;
 }
-.search-bar button:hover {
-  background: #307ae8;
+
+.add-btn:hover {
+  background-color: #45a049;
 }
-.search-bar .reset-btn:hover {
-  background: #cf9236;
+
+.edit-btn {
+  background-color: #2196f3;
+  color: white;
+  margin-right: 8px;
 }
-.table-wrapper {
-  overflow-x: auto;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 6px #e0e7ef;
-  margin-bottom: 28px;
+
+.edit-btn:hover {
+  background-color: #0b7dda;
 }
+
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #da190b;
+}
+
+.student-list {
+  margin-bottom: 20px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  min-width: 700px;
 }
+
 th, td {
-  border: 1px solid #e5e9f2;
-  padding: 12px 8px;
-  text-align: center;
-  font-size: 15px;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
 }
+
 th {
-  background: #f0f4fa;
-  color: #34495e;
-  font-weight: 600;
+  background-color: #f5f5f5;
+  font-weight: bold;
 }
-.edit-input {
-  width: 90%;
-  padding: 5px 8px;
-  border: 1px solid #bfcbd9;
-  border-radius: 4px;
-  font-size: 15px;
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
 }
-.action-btns {
+
+.pagination {
   display: flex;
-  gap: 4px;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
 }
-button {
-  padding: 5px 12px;
-  border: none;
+
+.pagination button {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background-color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-size select {
+  padding: 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
+  box-sizing: border-box;
 }
-.edit-btn {
-  background: #67c23a;
-  color: #fff;
-}
-.edit-btn:hover {
-  background: #4ea43a;
-}
-.save-btn {
-  background: #409eff;
-  color: #fff;
-}
-.save-btn:hover {
-  background: #307ae8;
-}
-.cancel-btn {
-  background: #e6a23c;
-  color: #fff;
-}
-.cancel-btn:hover {
-  background: #cf9236;
-}
-.delete-btn {
-  background: #f56c6c;
-  color: #fff;
-}
-.delete-btn:hover {
-  background: #d9534f;
-}
-.empty-row {
-  color: #aaa;
-  font-style: italic;
-  background: #fafbfc;
-}
-.add-form {
-  margin-top: 32px;
+
+.form-actions {
   display: flex;
-  justify-content: center;
   gap: 10px;
-  align-items: center;
-  background: #fff;
-  padding: 18px 16px;
-  border-radius: 8px;
-  box-shadow: 0 1px 6px #e0e7ef;
+  justify-content: flex-end;
+  margin-top: 24px;
 }
-.add-form h3 {
-  margin: 0 12px 0 0;
-  font-size: 17px;
-  color: #2d3a4b;
-  font-weight: 500;
-}
-.add-form input {
-  padding: 7px 10px;
-  border: 1px solid #bfcbd9;
+
+.form-actions button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 15px;
-  width: 120px;
-}
-.add-form .add-btn {
-  padding: 7px 20px;
-  background: #409eff;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  font-size: 15px;
   cursor: pointer;
-  transition: background 0.2s;
+  font-size: 14px;
 }
-.add-form .add-btn:hover {
-  background: #307ae8;
+
+.form-actions button[type="button"] {
+  background-color: #f5f5f5;
 }
-@media (max-width: 700px) {
-  .teacher-grade-container {
-    padding: 10px 2vw;
-  }
-  .add-form {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-  .add-form h3 {
-    margin-bottom: 6px;
-  }
-  .search-bar {
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-  }
-  table {
-    min-width: 500px;
-    font-size: 13px;
-  }
+
+.form-actions button[type="submit"] {
+  background-color: #4caf50;
+  color: white;
+  border-color: #4caf50;
+}
+
+.form-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actions {
+  white-space: nowrap;
 }
 </style>

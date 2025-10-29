@@ -25,11 +25,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-// 假设学生信息和成绩已通过登录获取，这里用静态数据演示
+// 学生信息
 const student = ref({
-  name: '张三',
-  usualScore: 32,
-  examScore: 61
+  name: '李四',
+  usualScore: 30,
+  examScore: 68
 })
 
 const totalScore = computed(() => student.value.usualScore + student.value.examScore)

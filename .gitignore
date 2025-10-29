@@ -1,6 +1,8 @@
 .vscode/
 build/
 bin/
+temp/
+temp_file/
 target/
 *.png
 *.jpg
@@ -57,3 +59,6 @@ target/
 *.bak
 *.old
 *.tmp
+*.exe
+*.pdb
+*.obj

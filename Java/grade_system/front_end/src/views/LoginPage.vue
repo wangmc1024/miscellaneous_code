@@ -16,10 +16,14 @@
           <option v-for="(r) in roles" :key="r.value" :value="r.value">{{ r.label }}</option>
         </select>
       </div>
+      <div class="button-group">
       <button type="submit" :disabled="isLoading">登录</button>
+      <button type="button" @click="clearForm">清除</button>
+      </div>
     </form>
   </div>
 
+  <RouterView></RouterView>
    <!-- 霓虹弹窗遮罩（半透明背景） -->
   <div class="neon-overlay" :class="{ 'show': showNeonAlert }"></div>
 
@@ -62,6 +66,14 @@ const goToHome = () => {
   router.push(redirect)
 }
 
+const clearForm = () => {
+  loginForm.value = {
+    username:'',
+    password:'',
+    role: 'teacher'
+  }
+}
+
 const handleLogin = async () => {
   isLoading.value = true
   try {
@@ -88,6 +100,11 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
 .login-container {
   max-width: 350px;
   margin: 60px auto;

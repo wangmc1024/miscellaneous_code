@@ -9,6 +9,7 @@ cv2.THRESH_TOZERO
 '''
 
 cat = cv2.imread('cat.png',0)
+cv2.imshow("cat",cat)
 #thresh,image = cv2.threshold(image,thresh_value,max_value,threshold_type)
 #max_value 只对cv2.THRESH_BINARY和cv2.THRESH_BINARY_INV有用，表示二值化的最大值
 #th,new = cv2.threshold(cat,128,255,cv2.THRESH_BINARY)
